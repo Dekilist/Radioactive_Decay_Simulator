@@ -108,10 +108,25 @@ def validate_model():
 
     print("All validation checks passed.")
 
+def run_multiple_simulations(initial_atoms, decay_constant, times, number_of_runs=10000):
+    """Run several simulations and calculate their average."""
+    all_runs = []
+
+    for run in range(number_of_runs):
+        result = simulate_decay(
+            initial_atoms, decay_constant, times, seed=run
+        )
+        all_runs.append(result)
+
+    all_runs = np.array(all_runs)
+    average = np.mean(all_runs, axis=0)
+
+    return all_runs, average
+
 
 def main():
     # Example values, not tied to a specific isotope.
-    initial_atoms = 1000000
+    initial_atoms = 1000
     half_life = 10.0
     duration = 50.0
     number_of_steps = 500
@@ -124,6 +139,34 @@ def main():
 
     decay_constant = calculate_decay_constant(half_life)
     theoretical = theoretical_decay(initial_atoms, decay_constant, times)
+
+    all_runs, average = run_multiple_simulations(
+        initial_atoms, decay_constant, times
+    )
+
+    plt.figure(figsize=(10, 6))
+
+    # Show a few individual runs to illustrate variation.
+    for index in range(10):
+        plt.plot(times, all_runs[index], color="gray", alpha=0.3)
+
+    plt.plot(
+        times, theoretical,
+        color="black", linewidth=2, label="Theoretical"
+    )
+    plt.plot(
+        times, average,
+        color="red", linestyle="--", linewidth=2,
+        label="Average of 100 simulations"
+    )
+
+    plt.xlabel(f"Time ({time_unit})")
+    plt.ylabel("Remaining atoms")
+    plt.title("Repeated Radioactive Decay Simulations")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
     simulated = simulate_decay(initial_atoms, decay_constant, times)
 
     validate_model()
